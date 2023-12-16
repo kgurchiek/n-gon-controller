@@ -1,7 +1,7 @@
 javascript:(() => {
   const buttonPressed = (b) => typeof b == 'object' ? b.pressed : b == 1.0;
-
-	simulation.mouseDistance = 120;
+  
+  simulation.mouseDistance = 120;
   simulation.mouseAngle = 0;
   simulation.mousePos = { x: 0, y: 0 }
   simulation.customLook = false;
@@ -16,7 +16,7 @@ javascript:(() => {
     if (simulation.customLook) {
       simulation.mouse.x = simulation.mousePos.x;
       simulation.mouse.y = simulation.mousePos.y;
-   	} else {
+    } else {
       var mCanvasPos = {
         x: ((m.pos.x + m.transX - canvas.width2) /  simulation.edgeZoomOutSmooth) * simulation.zoom + canvas.width2,
         y: simulation.mouse.y = ((m.pos.y + m.transY - canvas.height2) /  simulation.edgeZoomOutSmooth) * simulation.zoom + canvas.height2
@@ -78,9 +78,10 @@ javascript:(() => {
     const gpInputs = [];
     const gamepad = navigator.getGamepads()[0];
     
-		// buttons
+    // buttons
     for (var i = 0; i < gamepad.buttons.length; i++) if (buttonPressed(gamepad.buttons[i])) gpInputs.push(i);
-    if (simulation.isChoosing) {
+    if (simulation.onTitlePage) if (gpInputs.includes(0) && !lastInputs.includes(0)) simulation.startGame();
+    else if (simulation.isChoosing) {
       if (selectedElement == null) selectedElement = document.getElementsByClassName('choose-grid-module')[0]
       selectedElement.style.border = '4px solid #000000';
       var row;
@@ -96,9 +97,7 @@ javascript:(() => {
         row = (document.getElementsByClassName('research-card').length > 0 ? [ document.getElementsByClassName('research-card')[0] ] : []).concat([selectedElement]);
         var firstRow = [].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().y == document.getElementsByClassName('choose-grid-module')[0].getBoundingClientRect().y);
         column = [selectedElement].concat([].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().x == firstRow[firstRow.length - 1].getBoundingClientRect().x));
-      } else {
-        console.log('Error with selected element:', selectedElement);
-      }
+      } else console.log('Error with selected element:', selectedElement);
       
       selectedElement.selectedElement = true;
       var selectedRowIndex = 0;
@@ -159,9 +158,10 @@ javascript:(() => {
         else selectedElement = row[selectedRowIndex + 1];
       }
       
-      console.log(selectedElement.getBoundingClientRect().bottom, window.innerHeight)
-      if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
-      if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
+      if (selectedElement != null) {
+        if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
+        if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
+      }
     } else if (simulation.paused) {
       if (gpInputs.includes(1) || (gpInputs.includes(9) && !lastInputs.includes(9))) {
         build.unPauseGrid();
@@ -243,9 +243,6 @@ javascript:(() => {
       input.right = input.left = false;
       if (!crouchToggled) input.down = false;
     }
-    
-
-//     if (gpInputs.length > 0) console.log(gpInputs);
 
     lastInputs = gpInputs;
     requestAnimationFrame(loop);
