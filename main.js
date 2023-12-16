@@ -1,5 +1,4 @@
 javascript:(() => {
-  tech.giveTech('path integral')
   const buttonPressed = (b) => typeof b == 'object' ? b.pressed : b == 1.0;
 
 	simulation.mouseDistance = 120;
@@ -160,6 +159,9 @@ javascript:(() => {
         else selectedElement = row[selectedRowIndex + 1];
       }
       
+      console.log(selectedElement.getBoundingClientRect().bottom, window.innerHeight)
+      if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
+      if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
     } else if (simulation.paused) {
       if (gpInputs.includes(1) || (gpInputs.includes(9) && !lastInputs.includes(9))) {
         build.unPauseGrid();
