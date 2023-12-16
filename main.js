@@ -177,7 +177,7 @@ javascript:(() => {
     } else if (simulation.paused) {
       const techCards = [].slice.call(document.getElementsByClassName('pause-grid-module card-background')).filter(a => a.id.substring(a.id.length - 4) == 'tech');
       if (selectedElement == null) selectedElement = document.getElementById('pause-field');
-      selectedElement.style.border = '4px solid #000000';
+      if (selectedElement != null) selectedElement.style.border = '4px solid #000000';
       
       if (selectedElement.id.includes('field')) {
         if ((gpInputs.includes(14) && !lastInputs.includes(14)) || (gpInputs.includes(15) && !lastInputs.includes(15))) {
