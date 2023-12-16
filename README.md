@@ -6,6 +6,8 @@ Create a website bookmark in your browser and paste this script as the url. Then
 `javascript: (async () => { const scriptText = await (await fetch('https://raw.githubusercontent.com/kgurchiek/n-gon-controller/main/main.js')).text(); var script = document.createElement('script'); script.type = 'text/javascript'; script.textContent = scriptText; document.head.appendChild(script); })();`
 
 ## Controls
+| Bind | Function |
+| - | - |
 | Left Joystick | move, jump, crouch |
 | Right Joystick | look |
 | A | jump, select, start game |
