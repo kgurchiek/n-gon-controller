@@ -81,7 +81,10 @@ javascript:(() => {
     // buttons
     for (var i = 0; i < gamepad.buttons.length; i++) if (buttonPressed(gamepad.buttons[i])) gpInputs.push(i);
     if (simulation.onTitlePage) {
-      if (gpInputs.includes(0) && !lastInputs.includes(0)) simulation.startGame();
+      if (gpInputs.includes(0) && !lastInputs.includes(0)) {
+        simulation.startGame();
+        jumpCancel = true;
+      }
     }
     else if (simulation.isChoosing) {
       if (selectedElement == null) selectedElement = document.getElementsByClassName('choose-grid-module')[0]
@@ -137,6 +140,9 @@ javascript:(() => {
         
         if (selectedColumnIndex == 0) selectedElement = column[column.length - 1];
         else selectedElement = column[selectedColumnIndex - 1];
+        
+        if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
+        if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
       }
       if (gpInputs.includes(13) && !lastInputs.includes(13)) {
         selectedElement.selectedElement = false;
@@ -144,6 +150,9 @@ javascript:(() => {
         
         if (selectedColumnIndex == column.length - 1) selectedElement = column[0];
         else selectedElement = column[selectedColumnIndex + 1];
+        
+        if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
+        if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
       }
       if (gpInputs.includes(14) && !lastInputs.includes(14)) {
         selectedElement.selectedElement = false;
@@ -160,9 +169,10 @@ javascript:(() => {
         else selectedElement = row[selectedRowIndex + 1];
       }
       
-      if (selectedElement != null) {
-        if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
-        if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
+      
+      var joystickDistance = Math.sqrt(gamepad.axes[2]**2 + gamepad.axes[3]**2);
+      if (selectedElement != null && joystickDistance > 0.4) {
+          document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + gamepad.axes[3] * 5);
       }
     } else if (simulation.paused) {
       const techCards = [].slice.call(document.getElementsByClassName('pause-grid-module card-background')).filter(a => a.id.substring(a.id.length - 4) == 'tech');
@@ -185,6 +195,9 @@ javascript:(() => {
 
           if (selectedIndex == 0) selectedElement = techCards[techCards.length - 1];
           else selectedElement = techCards[selectedIndex - 1];
+          
+          if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('pause-grid-right').scroll(0, document.getElementById('pause-grid-right').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
+        	if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('pause-grid-right').scroll(0, document.getElementById('pause-grid-right').scrollTop + selectedElement.getBoundingClientRect().top)
         }
         if (gpInputs.includes(13) && !lastInputs.includes(13)) {
           selectedElement.selectedElement = false;
@@ -192,6 +205,9 @@ javascript:(() => {
 
           if (selectedIndex == techCards.length - 1) selectedElement = techCards[0];
           else selectedElement = techCards[selectedIndex + 1];
+          
+          if (selectedElement.getBoundingClientRect().bottom > window.innerHeight) document.getElementById('pause-grid-right').scroll(0, document.getElementById('pause-grid-right').scrollTop + selectedElement.getBoundingClientRect().bottom - window.innerHeight)
+        	if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('pause-grid-right').scroll(0, document.getElementById('pause-grid-right').scrollTop + selectedElement.getBoundingClientRect().top)
         }
         if ((gpInputs.includes(14) && !lastInputs.includes(14)) || (gpInputs.includes(15) && !lastInputs.includes(15))) {
           selectedElement.selectedElement = false;
@@ -207,6 +223,11 @@ javascript:(() => {
         simulation.paused = false;
         document.body.style.cursor = "none";
         requestAnimationFrame(cycle);
+      }
+      
+      var joystickDistance = Math.sqrt(gamepad.axes[2]**2 + gamepad.axes[3]**2);
+      if (selectedElement != null && joystickDistance > 0.4) {
+          document.getElementById('pause-grid-right').scroll(0, document.getElementById('pause-grid-right').scrollTop + gamepad.axes[3] * 5);
       }
     } else {
       if (!jumpCancel) input.up = gpInputs.includes(0);
