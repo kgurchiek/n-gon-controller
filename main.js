@@ -1,12 +1,17 @@
 javascript:(() => {
-  function buttonPressed(b) {
-    return typeof b == 'object' ? b.pressed : b == 1.0;
-  }
+  tech.giveTech('path integral')
+  const buttonPressed = (b) => typeof b == 'object' ? b.pressed : b == 1.0;
 
-	simulation.mouseDistance = 40;
+	simulation.mouseDistance = 120;
   simulation.mouseAngle = 0;
   simulation.mousePos = { x: 0, y: 0 }
   simulation.customLook = false;
+  
+  const oldEndDraft = powerUps.endDraft;
+  powerUps.endDraft = (type, isCancelled = false) => {
+    selectedElement = null;
+    oldEndDraft(type, isCancelled);
+  }
 
   simulation.camera = () => {
     if (simulation.customLook) {
@@ -67,13 +72,95 @@ javascript:(() => {
   var lastInputs = [];
   var crouchToggled = false;
   var freeLook = false;
+  var selectedElement;
+  var jumpCancel = false;
+  var crouchCancel = false;
   function loop() {
     const gpInputs = [];
     const gamepad = navigator.getGamepads()[0];
     
 		// buttons
     for (var i = 0; i < gamepad.buttons.length; i++) if (buttonPressed(gamepad.buttons[i])) gpInputs.push(i);
-    if (simulation.paused) {
+    if (simulation.isChoosing) {
+      if (selectedElement == null) selectedElement = document.getElementsByClassName('choose-grid-module')[0]
+      selectedElement.style.border = '4px solid #000000';
+      var row;
+      var column;
+      if (selectedElement.className.split(' ')[0] == 'choose-grid-module') {
+        row = [].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().y == selectedElement.getBoundingClientRect().y);
+        column = [].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().x == selectedElement.getBoundingClientRect().x);
+      } else if (selectedElement.className.split(' ')[0] == 'research-card') {
+        row = [selectedElement, document.getElementsByClassName('cancel-card')[0]]
+        var firstRow = [].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().y == document.getElementsByClassName('choose-grid-module')[0].getBoundingClientRect().y);
+        column = firstRow.length < 3 ? [selectedElement].concat([].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().x == document.getElementsByClassName('choose-grid-module')[0].getBoundingClientRect().x)) : [selectedElement].concat([].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().x == firstRow[1].getBoundingClientRect().x));
+      } else if (selectedElement.className.split(' ')[0] == 'cancel-card') {
+        row = (document.getElementsByClassName('research-card').length > 0 ? [ document.getElementsByClassName('research-card')[0] ] : []).concat([selectedElement]);
+        var firstRow = [].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().y == document.getElementsByClassName('choose-grid-module')[0].getBoundingClientRect().y);
+        column = [selectedElement].concat([].slice.call(document.getElementsByClassName('choose-grid-module')).filter(a => a.getBoundingClientRect().x == firstRow[firstRow.length - 1].getBoundingClientRect().x));
+      } else {
+        console.log('Error with selected element:', selectedElement);
+      }
+      
+      selectedElement.selectedElement = true;
+      var selectedRowIndex = 0;
+      for (; selectedRowIndex < row.length && !row[selectedRowIndex].selectedElement; selectedRowIndex++) {}
+      var selectedColumnIndex = 0;
+      for (; selectedColumnIndex < column.length && !column[selectedColumnIndex].selectedElement; selectedColumnIndex++) {}
+      
+      if (selectedElement.className.split(' ')[0] == 'choose-grid-module') {
+        if (selectedRowIndex == 0) {
+          column = [document.getElementsByClassName('research-card')[0]].concat(column);
+          selectedColumnIndex++;
+        }
+        if (selectedRowIndex == 1 && row.length == 3) {
+          column = [document.getElementsByClassName('research-card')[0]].concat(column);
+          selectedColumnIndex++;
+        }
+        if (selectedRowIndex == row.length - 1) {
+          column = [document.getElementsByClassName('cancel-card')[0]].concat(column);
+          selectedColumnIndex++;
+        }
+      }
+      
+      if (gpInputs.includes(0) && !lastInputs.includes(0)) {
+        jumpCancel = true;
+        selectedElement.onclick();
+      }
+      if (gpInputs.includes(1) && !lastInputs.includes(1)) {
+        crouchCancel = true;
+        document.getElementsByClassName('cancel-card')[0].onclick();
+      }
+      
+      if (gpInputs.includes(12) && !lastInputs.includes(12)) {
+        selectedElement.selectedElement = false;
+      	selectedElement.style.border = '';
+        
+        if (selectedColumnIndex == 0) selectedElement = column[column.length - 1];
+        else selectedElement = column[selectedColumnIndex - 1];
+      }
+      if (gpInputs.includes(13) && !lastInputs.includes(13)) {
+        selectedElement.selectedElement = false;
+      	selectedElement.style.border = '';
+        
+        if (selectedColumnIndex == column.length - 1) selectedElement = column[0];
+        else selectedElement = column[selectedColumnIndex + 1];
+      }
+      if (gpInputs.includes(14) && !lastInputs.includes(14)) {
+        selectedElement.selectedElement = false;
+      	selectedElement.style.border = '';
+        
+        if (selectedRowIndex == 0) selectedElement = row[row.length - 1];
+        else selectedElement = row[selectedRowIndex - 1];
+      }
+      if (gpInputs.includes(15) && !lastInputs.includes(15)) {
+        selectedElement.selectedElement = false;
+      	selectedElement.style.border = '';
+        
+        if (selectedRowIndex == row.length - 1) selectedElement = row[0];
+        else selectedElement = row[selectedRowIndex + 1];
+      }
+      
+    } else if (simulation.paused) {
       if (gpInputs.includes(1) || (gpInputs.includes(9) && !lastInputs.includes(9))) {
         build.unPauseGrid();
         simulation.paused = false;
@@ -81,17 +168,21 @@ javascript:(() => {
         requestAnimationFrame(cycle);
       }
     } else {
-      input.up = gpInputs.includes(0);
-      if (m.onGround) {
-        if (!crouchToggled && input.down) input.down = false;
-        if (gpInputs.includes(1) && !lastInputs.includes(1)) {
-          input.down = !input.down;
-        	crouchToggled = !crouchToggled;
+      if (!jumpCancel) input.up = gpInputs.includes(0);
+      if (!gpInputs.includes(0)) jumpCancel = false;
+      if (!crouchCancel) {
+        if (m.onGround) {
+          if (!crouchToggled && input.down) input.down = false;
+          if (gpInputs.includes(1) && !lastInputs.includes(1)) {
+            input.down = !input.down;
+            crouchToggled = !crouchToggled;
+          }
+        } else {
+          crouchToggled = false;
+          input.down = gpInputs.includes(1);
         }
-      } else {
-        crouchToggled = false;
-        input.down = gpInputs.includes(1);
       }
+      if (!gpInputs.includes(1)) crouchCancel = false;
       if (gpInputs.includes(4) && !lastInputs.includes(4)) simulation.previousGun();
       if (gpInputs.includes(5) && !lastInputs.includes(5)) simulation.nextGun();
       input.field = gpInputs.includes(6);
