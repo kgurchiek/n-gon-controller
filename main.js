@@ -80,7 +80,9 @@ javascript:(() => {
     
     // buttons
     for (var i = 0; i < gamepad.buttons.length; i++) if (buttonPressed(gamepad.buttons[i])) gpInputs.push(i);
-    if (simulation.onTitlePage) if (gpInputs.includes(0) && !lastInputs.includes(0)) simulation.startGame();
+    if (simulation.onTitlePage) {
+      if (gpInputs.includes(0) && !lastInputs.includes(0)) simulation.startGame();
+    }
     else if (simulation.isChoosing) {
       if (selectedElement == null) selectedElement = document.getElementsByClassName('choose-grid-module')[0]
       selectedElement.style.border = '4px solid #000000';
@@ -163,7 +165,44 @@ javascript:(() => {
         if (selectedElement.getBoundingClientRect().top < 0) document.getElementById('choose-grid').scroll(0, document.getElementById('choose-grid').scrollTop + selectedElement.getBoundingClientRect().top)
       }
     } else if (simulation.paused) {
+      const techCards = [].slice.call(document.getElementsByClassName('pause-grid-module card-background')).filter(a => a.id.substring(a.id.length - 4) == 'tech');
+      if (selectedElement == null) selectedElement = document.getElementById('pause-field');
+      selectedElement.style.border = '4px solid #000000';
+      
+      if (selectedElement.id.includes('field')) {
+        if ((gpInputs.includes(14) && !lastInputs.includes(14)) || (gpInputs.includes(15) && !lastInputs.includes(15))) {
+          selectedElement.style.border = '';
+          selectedElement = techCards[0]
+        }
+      } else {
+        selectedElement.selectedElement = true;
+        var selectedIndex = 0;
+        for (; selectedIndex < techCards.length && !techCards[selectedIndex].selectedElement; selectedIndex++) {}
+        
+        if (gpInputs.includes(12) && !lastInputs.includes(12)) {
+          selectedElement.selectedElement = false;
+          selectedElement.style.border = '';
+
+          if (selectedIndex == 0) selectedElement = techCards[techCards.length - 1];
+          else selectedElement = techCards[selectedIndex - 1];
+        }
+        if (gpInputs.includes(13) && !lastInputs.includes(13)) {
+          selectedElement.selectedElement = false;
+          selectedElement.style.border = '';
+
+          if (selectedIndex == techCards.length - 1) selectedElement = techCards[0];
+          else selectedElement = techCards[selectedIndex + 1];
+        }
+        if ((gpInputs.includes(14) && !lastInputs.includes(14)) || (gpInputs.includes(15) && !lastInputs.includes(15))) {
+          selectedElement.selectedElement = false;
+          selectedElement.style.border = '';
+          selectedElement = document.getElementById('pause-field');
+        }
+      }
+      
+      if ((gpInputs.includes(0) || gpInputs.includes(0)) && typeof selectedElement.onclick == 'function') selectedElement.onclick();
       if (gpInputs.includes(1) || (gpInputs.includes(9) && !lastInputs.includes(9))) {
+        selectedElement = null;
         build.unPauseGrid();
         simulation.paused = false;
         document.body.style.cursor = "none";
