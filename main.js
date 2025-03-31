@@ -1,25 +1,3 @@
-const gunList = [] //store gun names
-for (i = 0, len = b.inventory.length; i < len; i++) gunList.push(b.inventory[i])
-const techList = [] //store tech names
-for (let i = 0; i < tech.tech.length; i++) {
-  if (tech.tech[i].count > 0 && !tech.tech[i].isNonRefundable) techList.push(i)
-}
-if (techList.length) {
-  localSettings.entanglement = {
-    fieldIndex: m.fieldMode,
-    gunIndexes: gunList,
-    techIndexes: techList,
-    position: {
-      x: m.pos.x,
-      y: m.pos.y
-    },
-    levelName: level.levels[level.onLevel],
-    isHorizontalFlipped: simulation.isHorizontalFlipped
-  }
-  if (localSettings.isAllowed) localStorage.setItem('localSettings', JSON.stringify(localSettings)); //update local storage
-//     return;
-}
-
 const buttonPressed = (b) => typeof b == 'object' ? b.pressed : b == 1.0;
 
 simulation.mouseDistance = 120;
@@ -146,8 +124,9 @@ function loop() {
       var selectedColumnIndex = 0;
       for (; selectedColumnIndex < column.length && !column[selectedColumnIndex].isSelected; selectedColumnIndex++) {}
 
+      console.log(selectedElement.className.split(' ').includes('choose-grid-module'), research != null, selectedRowIndex, firstRow.length)
       if (selectedElement.className.split(' ').includes('choose-grid-module') && research != null) {
-        if (selectedRowIndex < firstRow.length - 1) {
+        if (selectedRowIndex < firstRow.length - 1 || firstRow.length == 1) {
           column = [research].concat(column);
           selectedColumnIndex++;
         }
@@ -181,6 +160,7 @@ function loop() {
         selectedElement.isSelected = false;
         selectedElement.style.border = '';
 
+        console.log(selectedColumnIndex, column)
         if (selectedColumnIndex == 0) selectedElement = column[column.length - 1];
         else selectedElement = column[selectedColumnIndex - 1];
 
