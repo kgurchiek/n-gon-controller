@@ -62,6 +62,7 @@ function setCrosshairPoint() {
   simulation.mouseInGame.y = (simulation.mouse.y - canvas.height2) / simulation.zoom * simulation.edgeZoomOutSmooth + canvas.height2 - m.transY;
 }
 
+var started = false;
 var lastInputs = [];
 var crouchToggled = false;
 var freeLook = false;
@@ -72,7 +73,8 @@ var wasChoosing = false;
 
 window.addEventListener('gamepadconnected', (e) => {
   console.log(`Gamepad connected at index ${e.gamepad.index}: ${e.gamepad.id}. ${e.gamepad.buttons.length} buttons, ${e.gamepad.axes.length} axes.`);
-  setInterval(loop);
+  if (!started) setInterval(loop);
+  started = true;
 });
 function loop() {
   const gpInputs = [];
